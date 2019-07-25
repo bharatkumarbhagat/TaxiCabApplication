@@ -120,10 +120,13 @@ stage('Deploy on Prod') {
           			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
           			returnStdout: true
          		).trim()
+			println "${DESIRED}"
         		CURRENT= sh (
           			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
           			returnStdout: true
-         		).trim()[0]
+         		).trim()
+			
+			println "${CURRENT}"
         		if (DESIRED.equals(CURRENT)) {
           			currentBuild.result = "SUCCESS"
         		} else {
