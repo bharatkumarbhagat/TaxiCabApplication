@@ -2,29 +2,23 @@
 properties([
 	parameters([
         string(defaultValue: "master", description: 'Which Git Branch to clone?', name: 'GIT_BRANCH'),
-        string(defaultValue: "040775512400", description: 'AWS Account Number?', name: 'ACCOUNT'),
+        string(defaultValue: "1234567", description: 'AWS Account Number?', name: 'ACCOUNT'),
         string(defaultValue: "taxicab-prod-svc", description: 'Blue Service Name to patch in Prod Environment', name: 'PROD_BLUE_SERVICE'),
         string(defaultValue: "java-app", description: 'AWS ECR Repository where built docker images will be pushed.', name: 'ECR_REPO_NAME')
 	])
 ])
-
-environment {
-	PATH = '$PATH:~/aws1/'
-	
-}
 try {
 
   stage('Clone Repo'){
     node('master'){
       cleanWs()
-      //checkout([$class: 'GitSCM', branches: [[name: '*/$GIT_BRANCH']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'git@github.com:bharatkumarbhagat/TaxiCabApplication.git']]])
-	    git changelog: false, credentialsId: '1234', poll: false, url: 'https://github.com/bharatkumarbhagat/TaxiCabApplication.git'
+      checkout([$class: 'GitSCM', branches: [[name: '*/$GIT_BRANCH']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'git@github.com:powerupcloud/TaxiCabApplication.git']]])
     }
   }
 
   stage('Build Maven'){
     node('master'){
-      withMaven(maven: 'maven-3.6.1'){
+      withMaven(maven: 'apache-maven3.6'){
        sh "mvn clean package"
       } 
     }
@@ -51,30 +45,25 @@ try {
   stage('Deploy on Dev') {
   	node('master'){
     	withEnv(["KUBECONFIG=${JENKINS_HOME}/.kube/dev-config","IMAGE=${ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${ECR_REPO_NAME}:${IMAGETAG}"]){
-        	sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/pod.yaml"
+        	sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/deployment.yaml"
         	sh "sed -i 's|ACCOUNT|${ACCOUNT}|g' k8s/service.yaml"
         	sh "sed -i 's|ENVIRONMENT|dev|g' k8s/*.yaml"
         	sh "sed -i 's|BUILD_NUMBER|01|g' k8s/*.yaml"
-        	sh "/var/lib/jenkins/aws1/kubectl apply -f k8s"
+        	sh "kubectl apply -f k8s"
         	DEPLOYMENT = sh (
-          		script: 'cat k8s/pod.yaml | yq -r .metadata.name',
+          		script: 'cat k8s/deployment.yaml | yq -r .metadata.name',
           		returnStdout: true
         	).trim()
         	echo "Creating k8s resources..."
         	sleep 180
         	DESIRED= sh (
-         
-			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT  | awk '{print \$2}' | cut -d '/' -f 2 | grep -v READY",
+          		script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v DESIRED",
           		returnStdout: true
          	).trim()
-		
-		println  "${DESIRED}"
         	CURRENT= sh (
-         
-          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | cut -d '/' -f 1 | grep -v READY",
-			returnStdout: true
+          		script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
+          		returnStdout: true
          	).trim()
-		println  "${CURRENT}"
         	if (DESIRED.equals(CURRENT)) {
           		currentBuild.result = "SUCCESS"
           		return
@@ -111,31 +100,28 @@ stage('Deploy on Prod') {
     	if (userInput['DEPLOY_TO_PROD'] == true) {
     		echo "Deploying to Production..."       
        		withEnv(["KUBECONFIG=${JENKINS_HOME}/.kube/prod-config","IMAGE=${ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${ECR_REPO_NAME}:${IMAGETAG}"]){
-        		sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/pod.yaml"
+        		sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/deployment.yaml"
         		sh "sed -i 's|ACCOUNT|${ACCOUNT}|g' k8s/service.yaml"
         		sh "sed -i 's|dev|prod|g' k8s/*.yaml"
-        		sh "/var/lib/jenkins/aws1/kubectl apply -f k8s"
+        		sh "kubectl apply -f k8s"
         		DEPLOYMENT = sh (
-          			script: 'cat k8s/pod.yaml | yq -r .metadata.name',
+          			script: 'cat k8s/deployment.yaml | yq -r .metadata.name',
           			returnStdout: true
         		).trim()
         		echo "Creating k8s resources..."
         		sleep 180
         		DESIRED= sh (
-          			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
+          			script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
           			returnStdout: true
          		).trim()
-			println "${DESIRED}"
         		CURRENT= sh (
-          			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
+          			script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
           			returnStdout: true
          		).trim()
-			
-			println "${CURRENT}"
         		if (DESIRED.equals(CURRENT)) {
           			currentBuild.result = "SUCCESS"
         		} else {
-          			error("Deployment unsuccessful.")
+          			error("Deployment Unsuccessful.")
           			currentBuild.result = "FAILURE"
           			return
         		}
@@ -158,7 +144,7 @@ stage('Validate Prod Green Env') {
           		returnStdout: true
         	).trim()
         	GREEN_LB = sh (
-          		script: "/var/lib/jenkins/aws1/kubectl get svc ${GREEN_SVC_NAME} -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\"",
+          		script: "kubectl get svc ${GREEN_SVC_NAME} -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\"",
           		returnStdout: true
         	).trim()
         	echo "Green ENV LB: ${GREEN_LB}"
@@ -183,19 +169,19 @@ stage('Patch Prod Blue Service') {
       if (userInput['PROD_BLUE_DEPLOYMENT'] == false) {
       	withEnv(["KUBECONFIG=${JENKINS_HOME}/.kube/prod-config"]){
         	BLUE_VERSION = sh (
-            	script: "/var/lib/jenkins/aws1/kubectl get svc/${PROD_BLUE_SERVICE} -o yaml | yq .spec.selector.version",
+            	script: "kubectl get svc/${PROD_BLUE_SERVICE} -o yaml | yq .spec.selector.version",
           	returnStdout: true
         	).trim()
-        	CMD = "/var/lib/jenkins/aws1/kubectl get deployment -l version=${BLUE_VERSION} | awk '{if(NR>1)print \$1}'"
+        	CMD = "kubectl get deployment -l version=${BLUE_VERSION} | awk '{if(NR>1)print \$1}'"
         	BLUE_DEPLOYMENT_NAME = sh (
             	script: "${CMD}",
           		returnStdout: true
         	).trim()
         	echo "${BLUE_DEPLOYMENT_NAME}"
-          	sh """/var/lib/jenkins/aws1/kubectl patch svc  "${PROD_BLUE_SERVICE}" -p '{\"spec\":{\"selector\":{\"app\":\"taxicab\",\"version\":\"${BUILD_NUMBER}\"}}}'"""
+          	sh """kubectl patch svc  "${PROD_BLUE_SERVICE}" -p '{\"spec\":{\"selector\":{\"app\":\"taxicab\",\"version\":\"${BUILD_NUMBER}\"}}}'"""
           	echo "Deleting Blue Environment..."
-          	sh "/var/lib/jenkins/aws1/kubectl delete svc ${GREEN_SVC_NAME}"
-          	sh "/var/lib/jenkins/aws1/kubectl delete deployment ${BLUE_DEPLOYMENT_NAME}"
+          	sh "kubectl delete svc ${GREEN_SVC_NAME}"
+          	sh "kubectl delete deployment ${BLUE_DEPLOYMENT_NAME}"
       	}
       }
     }
