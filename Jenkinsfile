@@ -19,7 +19,7 @@ try {
 
   stage('Build Maven'){
     node('master'){
-      withMaven(maven: 'apache-maven3.6'){
+      withMaven(maven: 'maven-3.6.1'){
        sh "mvn clean package"
       } 
     }
