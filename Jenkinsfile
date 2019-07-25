@@ -9,7 +9,7 @@ properties([
 ])
 
 environment {
-	PATH = $PATH:~/aws1/
+	PATH = '$PATH:~/aws1/'
 	
 }
 try {
