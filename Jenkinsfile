@@ -61,7 +61,7 @@ try {
           		returnStdout: true
         	).trim()
         	echo "Creating k8s resources..."
-        	sleep 60
+        	sleep 180
         	DESIRED= sh (
          
 			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT  | awk '{print \$2}' | cut -d '/' -f 2 | grep -v READY",
