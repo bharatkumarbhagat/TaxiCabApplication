@@ -65,7 +65,7 @@ try {
         	DESIRED= sh (
           		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
           		returnStdout: true
-         	).trim()[0]
+         	).trim()
         	CURRENT= sh (
           		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
           		returnStdout: true
