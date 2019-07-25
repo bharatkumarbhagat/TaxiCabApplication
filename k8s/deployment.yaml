@@ -1,5 +1,5 @@
 ##apiVersion: extensions/v1beta1
-apiVersion: v1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: taxicab-ENVIRONMENT-BUILD_NUMBER
@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: taxicab-ENVIRONMENT-BUILD_NUMBER
-        image: IMAGE
+        image: 040775512400.dkr.ecr.us-east-1.amazonaws.com/java-app:a7d35a5a9c2234031bd7365a4cb4ec134f2d74cc-20190725071130
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8080
+        - containerPort: 8080apps/v1beta1
