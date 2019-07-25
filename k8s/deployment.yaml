@@ -15,4 +15,4 @@ spec:
         image: 040775512400.dkr.ecr.us-east-1.amazonaws.com/java-app:a7d35a5a9c2234031bd7365a4cb4ec134f2d74cc-20190725071130
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 8080apps/v1beta1
+        - containerPort: 8080
