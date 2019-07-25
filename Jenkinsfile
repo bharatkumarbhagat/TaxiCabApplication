@@ -7,6 +7,11 @@ properties([
         string(defaultValue: "java-app", description: 'AWS ECR Repository where built docker images will be pushed.', name: 'ECR_REPO_NAME')
 	])
 ])
+
+environment {
+	PATH = $PATH:~/aws1/
+	
+}
 try {
 
   stage('Clone Repo'){
