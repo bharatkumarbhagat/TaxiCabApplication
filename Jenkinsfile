@@ -46,7 +46,7 @@ try {
   stage('Deploy on Dev') {
   	node('master'){
     	withEnv(["KUBECONFIG=${JENKINS_HOME}/.kube/dev-config","IMAGE=${ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${ECR_REPO_NAME}:${IMAGETAG}"]){
-        	sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/deployment.yaml"
+        	sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/pod.yaml"
         	sh "sed -i 's|ACCOUNT|${ACCOUNT}|g' k8s/service.yaml"
         	sh "sed -i 's|ENVIRONMENT|dev|g' k8s/*.yaml"
         	sh "sed -i 's|BUILD_NUMBER|01|g' k8s/*.yaml"
@@ -101,7 +101,7 @@ stage('Deploy on Prod') {
     	if (userInput['DEPLOY_TO_PROD'] == true) {
     		echo "Deploying to Production..."       
        		withEnv(["KUBECONFIG=${JENKINS_HOME}/.kube/prod-config","IMAGE=${ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/${ECR_REPO_NAME}:${IMAGETAG}"]){
-        		sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/deployment.yaml"
+        		sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/pod.yaml"
         		sh "sed -i 's|ACCOUNT|${ACCOUNT}|g' k8s/service.yaml"
         		sh "sed -i 's|dev|prod|g' k8s/*.yaml"
         		sh "/var/lib/jenkins/aws1/kubectl apply -f k8s"
