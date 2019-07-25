@@ -50,7 +50,7 @@ try {
         	sh "sed -i 's|ACCOUNT|${ACCOUNT}|g' k8s/service.yaml"
         	sh "sed -i 's|ENVIRONMENT|dev|g' k8s/*.yaml"
         	sh "sed -i 's|BUILD_NUMBER|01|g' k8s/*.yaml"
-        	sh "kubectl apply -f k8s"
+        	sh "/var/lib/jenkins/aws1/kubectl apply -f k8s"
         	DEPLOYMENT = sh (
           		script: 'cat k8s/deployment.yaml | yq -r .metadata.name',
           		returnStdout: true
@@ -58,11 +58,11 @@ try {
         	echo "Creating k8s resources..."
         	sleep 180
         	DESIRED= sh (
-          		script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
+          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
           		returnStdout: true
          	).trim()
         	CURRENT= sh (
-          		script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
+          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
           		returnStdout: true
          	).trim()
         	if (DESIRED.equals(CURRENT)) {
@@ -104,7 +104,7 @@ stage('Deploy on Prod') {
         		sh "sed -i 's|IMAGE|${IMAGE}|g' k8s/deployment.yaml"
         		sh "sed -i 's|ACCOUNT|${ACCOUNT}|g' k8s/service.yaml"
         		sh "sed -i 's|dev|prod|g' k8s/*.yaml"
-        		sh "kubectl apply -f k8s"
+        		sh "/var/lib/jenkins/aws1/kubectl apply -f k8s"
         		DEPLOYMENT = sh (
           			script: 'cat k8s/deployment.yaml | yq -r .metadata.name',
           			returnStdout: true
@@ -112,11 +112,11 @@ stage('Deploy on Prod') {
         		echo "Creating k8s resources..."
         		sleep 180
         		DESIRED= sh (
-          			script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
+          			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
           			returnStdout: true
          		).trim()
         		CURRENT= sh (
-          			script: "kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
+          			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
           			returnStdout: true
          		).trim()
         		if (DESIRED.equals(CURRENT)) {
@@ -145,7 +145,7 @@ stage('Validate Prod Green Env') {
           		returnStdout: true
         	).trim()
         	GREEN_LB = sh (
-          		script: "kubectl get svc ${GREEN_SVC_NAME} -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\"",
+          		script: "/var/lib/jenkins/aws1/kubectl get svc ${GREEN_SVC_NAME} -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\"",
           		returnStdout: true
         	).trim()
         	echo "Green ENV LB: ${GREEN_LB}"
@@ -170,19 +170,19 @@ stage('Patch Prod Blue Service') {
       if (userInput['PROD_BLUE_DEPLOYMENT'] == false) {
       	withEnv(["KUBECONFIG=${JENKINS_HOME}/.kube/prod-config"]){
         	BLUE_VERSION = sh (
-            	script: "kubectl get svc/${PROD_BLUE_SERVICE} -o yaml | yq .spec.selector.version",
+            	script: "/var/lib/jenkins/aws1/kubectl get svc/${PROD_BLUE_SERVICE} -o yaml | yq .spec.selector.version",
           	returnStdout: true
         	).trim()
-        	CMD = "kubectl get deployment -l version=${BLUE_VERSION} | awk '{if(NR>1)print \$1}'"
+        	CMD = "/var/lib/jenkins/aws1/kubectl get deployment -l version=${BLUE_VERSION} | awk '{if(NR>1)print \$1}'"
         	BLUE_DEPLOYMENT_NAME = sh (
             	script: "${CMD}",
           		returnStdout: true
         	).trim()
         	echo "${BLUE_DEPLOYMENT_NAME}"
-          	sh """kubectl patch svc  "${PROD_BLUE_SERVICE}" -p '{\"spec\":{\"selector\":{\"app\":\"taxicab\",\"version\":\"${BUILD_NUMBER}\"}}}'"""
+          	sh """/var/lib/jenkins/aws1/kubectl patch svc  "${PROD_BLUE_SERVICE}" -p '{\"spec\":{\"selector\":{\"app\":\"taxicab\",\"version\":\"${BUILD_NUMBER}\"}}}'"""
           	echo "Deleting Blue Environment..."
-          	sh "kubectl delete svc ${GREEN_SVC_NAME}"
-          	sh "kubectl delete deployment ${BLUE_DEPLOYMENT_NAME}"
+          	sh "/var/lib/jenkins/aws1/kubectl delete svc ${GREEN_SVC_NAME}"
+          	sh "/var/lib/jenkins/aws1/kubectl delete deployment ${BLUE_DEPLOYMENT_NAME}"
       	}
       }
     }
