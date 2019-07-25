@@ -74,7 +74,7 @@ try {
           		currentBuild.result = "SUCCESS"
           		return
         	} else {
-          		error("Deployment Unsuccessful.")
+          		error("Deployment successful.")
           		currentBuild.result = "FAILURE"
           		return
         	}
