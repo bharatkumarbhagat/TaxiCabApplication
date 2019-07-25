@@ -127,7 +127,7 @@ stage('Deploy on Prod') {
         		if (DESIRED.equals(CURRENT)) {
           			currentBuild.result = "SUCCESS"
         		} else {
-          			error("Deployment Unsuccessful.")
+          			error("Deployment successful.")
           			currentBuild.result = "FAILURE"
           			return
         		}
