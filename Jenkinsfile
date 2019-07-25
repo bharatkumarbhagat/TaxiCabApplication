@@ -64,14 +64,14 @@ try {
         	sleep 60
         	DESIRED= sh (
          
-			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT  | awk '{print $2}' | cut -d '/' -f 2 | grep -v READY",
+			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT  | awk '{print \$2}' | cut -d '/' -f 2 | grep -v READY",
           		returnStdout: true
          	).trim()
 		
 		println  "${DESIRED}"
         	CURRENT= sh (
          
-          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print $2}' | cut -d '/' -f 1 | grep -v READY",
+          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | cut -d '/' -f 1 | grep -v READY",
 			returnStdout: true
          	).trim()
 		println  "${CURRENT}"
