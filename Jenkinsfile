@@ -63,7 +63,7 @@ try {
         	echo "Creating k8s resources..."
         	sleep 180
         	DESIRED= sh (
-          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | grep -v DESIRED",
+          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v DESIRED",
           		returnStdout: true
          	).trim()
         	CURRENT= sh (
@@ -74,7 +74,7 @@ try {
           		currentBuild.result = "SUCCESS"
           		return
         	} else {
-          		error("Deployment successful.")
+          		error("Deployment Unsuccessful.")
           		currentBuild.result = "FAILURE"
           		return
         	}
@@ -123,7 +123,7 @@ stage('Deploy on Prod') {
         		CURRENT= sh (
           			script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v CURRENT",
           			returnStdout: true
-         		).trim()
+         		).trim()[0]
         		if (DESIRED.equals(CURRENT)) {
           			currentBuild.result = "SUCCESS"
         		} else {
