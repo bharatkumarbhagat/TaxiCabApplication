@@ -12,7 +12,8 @@ try {
   stage('Clone Repo'){
     node('master'){
       cleanWs()
-      checkout([$class: 'GitSCM', branches: [[name: '*/$GIT_BRANCH']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'git@github.com:bharatkumarbhagat/TaxiCabApplication.git']]])
+      //checkout([$class: 'GitSCM', branches: [[name: '*/$GIT_BRANCH']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'git@github.com:bharatkumarbhagat/TaxiCabApplication.git']]])
+	    git changelog: false, credentialsId: '1234', poll: false, url: 'https://github.com/bharatkumarbhagat/TaxiCabApplication.git'
     }
   }
 
