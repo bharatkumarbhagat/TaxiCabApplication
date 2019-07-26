@@ -9,6 +9,9 @@ properties([
 ])
 try {
 
+	stage('hi') {
+		node('master') {
+		  sh "env"	}	}
   stage('Clone Repo'){
     node('master'){
       cleanWs()
@@ -82,3 +85,4 @@ catch (err){
   throw err
 }
 //hjkl
+
