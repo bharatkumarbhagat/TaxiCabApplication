@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: taxicab-ENVIRONMENT-BUILD_NUMBER
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
