@@ -1,10 +1,10 @@
 #!/usr/bin/env groovy
 properties([
 	parameters([
-        string(defaultValue: "master", description: 'Which Git Branch to clone?', name: 'GIT_BRANCH'),
+        string(defaultValue: "master", description: 'Which sdfsdas sdfsdasvf Git Branch to clone?', name: 'GIT_BRANCH'),
         string(defaultValue: "040775512400", description: 'AWS Account Number?', name: 'ACCOUNT'),
         string(defaultValue: "taxicab-prod-svc", description: 'Blue Service Name to patch in Prod Environment', name: 'PROD_BLUE_SERVICE'),
-        string(defaultValue: "java-app", description: 'AWS ECR Repository where built docker images will be pushed.', name: 'ECR_REPO_NAME')
+        string(defaultValue: "java-app", description: 'AWS ECR Repository where buiasdasdsdvlt docker images will be pushed.', name: 'ECR_REPO_NAME')
 	])
 ])
 try {
