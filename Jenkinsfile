@@ -57,11 +57,11 @@ try {
         	echo "Creating k8s resources..."
         	sleep 180
         	DESIRED= sh (
-          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$3}' | grep -v DESIRED",
+          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT  | awk '{print \$2}' | cut -d '/' -f 2 | grep -v READY",
           		returnStdout: true
          	).trim()
         	CURRENT= sh (
-          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$4}' | grep -v CURRENT",
+          		script: "/var/lib/jenkins/aws1/kubectl get deployment/$DEPLOYMENT | awk '{print \$2}' | cut -d '/' -f 1 | grep -v READY",
           		returnStdout: true
          	).trim()
         	if (DESIRED.equals(CURRENT)) {
